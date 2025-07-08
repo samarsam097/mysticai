@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>MysticAI — Ask the Oracle</title>
+  <style>
+    body { background: #1a002b; color: #f8f0e3; font-family: serif; margin:0; padding:0; }
+    .header { background: rgba(0,0,0,0.7); padding:20px; text-align:center; }
+    .container { padding:20px; max-width:800px; margin:0 auto; }
+    .card { background: rgba(0,0,0,0.6); border-radius:8px; padding:20px; margin-bottom:20px; }
+    input, textarea, button { width:100%; padding:10px; margin:8px 0; border-radius:4px; border:1px solid #444; background:#111; color:#f8f0e3; }
+    button { background:#5e2ca5; cursor:pointer; }
+    img { max-width:100%; border-radius:4px; margin-top:10px; }
+    .history-item { border-top:1px solid #444; padding:10px 0; }
+    .logout { float:right; background:#c53030; }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h1>🔮 MysticAI</h1>
+    <button class="logout" id="btnLogout">Logout</button>
+  </div>
+
+  <div class="container">
+    <!-- Palm Section -->
+    <div class="card">
+      <h2>Your Palm</h2>
+      <img id="palmImg" alt="No palm image yet">
+      <input type="file" id="palmFile">
+    </div>
+
+    <!-- Ask AI Section -->
+    <div class="card">
+      <h2>Ask the Oracle</h2>
+      <textarea id="question" rows="3" placeholder="Your question..."></textarea>
+      <button id="btnAsk">Consult</button>
+      <div id="answer" style="margin-top:10px;font-style:italic;"></div>
+    </div>
+
+    <!-- History Section -->
+    <div class="card">
+      <h2>Past Readings</h2>
+      <button id="btnHistory">Refresh History</button>
+      <div id="history"></div>
+    </div>
+  </div>
+
+  <script>
+    const API = 'http://localhost:3000';
+    const user = localStorage.getItem('mystic_user');
+    const dob = localStorage.getItem('mystic_dob');
+    if (!user || !dob) {
+      window.location.href = 'login.html';
+    }
+
+    // Elements
+    const palmImg = document.getElementById('palmImg');
+    const palmFile = document.getElementById('palmFile');
+    const answerDiv = document.getElementById('answer');
+    const historyDiv = document.getElementById('history');
+
+    // Load saved palm on page load
+    (async () => {
+      const res = await fetch(`${API}/login`, {
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({ username: user, dob })
+      });
+      const data = await res.json();
+      if (data.palm_path) {
+        palmImg.src = `${API}/palm_images/${data.palm_path}`;
+      }
+    })();
+
+    // Logout
+    document.getElementById('btnLogout').onclick = () => {
+      localStorage.clear();
+      window.location.href = 'login.html';
+    };
+
+    // Ask AI
+    document.getElementById('btnAsk').onclick = async () => {
+      const question = document.getElementById('question').value;
+      if (!question) return alert('Please type a question.');
+      const fd = new FormData();
+      fd.append('username', user);
+      fd.append('dob', dob);
+      fd.append('question', question);
+      if (palmFile.files[0]) fd.append('image', palmFile.files[0]);
+
+      answerDiv.textContent = '✨ Seeking guidance...';
+      const res = await fetch(`${API}/ask-logged`, { method:'POST', body: fd });
+      const data = await res.json();
+      answerDiv.textContent = data.answer || data.error;
+      loadHistory();
+    };
+
+    // Upload new palm and refresh display
+    palmFile.onchange = async () => {
+      const fd = new FormData();
+      fd.append('username', user);
+      fd.append('dob', dob);
+      fd.append('question',''); // no question for only palm update
+      fd.append('image', palmFile.files[0]);
+
+      // We call ask-logged but ignore answer
+      await fetch(`${API}/ask-logged`, { method:'POST', body:fd });
+      palmImg.src = URL.createObjectURL(palmFile.files[0]);
+    };
+
+    // Load history
+    async function loadHistory() {
+      historyDiv.innerHTML = 'Loading…';
+      const res = await fetch(`${API}/history/${user}`);
+      const data = await res.json();
+      historyDiv.innerHTML = '';
+      if (!data.length) {
+        historyDiv.textContent = 'No history yet.';
+        return;
+      }
+      data.forEach(item => {
+        const d = document.createElement('div');
+        d.className = 'history-item';
+        d.innerHTML = `
+          <p><strong>Q:</strong> ${item.question}</p>
+          <p><strong>A:</strong> ${item.answer}</p>
+          ${item.image_path ? `<img src="${API}/palm_images/${item.image_path}">` : ''}
+          <p style="font-size:0.8rem;color:#bbb;">${new Date(item.timestamp).toLocaleString()}</p>
+        `;
+        historyDiv.appendChild(d);
+      });
+    }
+
+    document.getElementById('btnHistory').onclick = loadHistory;
+    // initial load
+    loadHistory();
+  </script>
+</body>
+</html>

@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>MysticAI — Login</title>
+  <style>
+    body { background: #1a002b; color: #f8f0e3; font-family: serif; }
+    .card { background: rgba(0,0,0,0.6); max-width:400px; margin:100px auto; padding:20px; border-radius:8px; }
+    input, button { width:100%; padding:10px; margin:8px 0; border-radius:4px; border:1px solid #444; background:#111; color:#f8f0e3; }
+    button { background:#5e2ca5; cursor:pointer; }
+    a { color:#9f7aea; text-decoration:none; display:block; text-align:center; margin-top:12px; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h2 style="text-align:center;">🔮 MysticAI Login</h2>
+    <input id="username" placeholder="Username">
+    <input type="date" id="dob">
+    <button id="btnLogin">Login</button>
+    <a href="register.html">New user? Register here</a>
+  </div>
+
+  <script>
+    const API = 'http://localhost:3000';
+    document.getElementById('btnLogin').onclick = async () => {
+      const username = document.getElementById('username').value;
+      const dob = document.getElementById('dob').value;
+      if (!username||!dob) return alert('Fill both fields');
+      const res = await fetch(`${API}/login`, {
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({ username, dob })
+      });
+      const data = await res.json();
+      if (data.message) {
+        // save session
+        localStorage.setItem('mystic_user', username);
+        localStorage.setItem('mystic_dob', dob);
+        // go to ask page
+        window.location.href = 'ask.html';
+      } else {
+        alert(data.error);
+      }
+    };
+  </script>
+</body>
+</html>

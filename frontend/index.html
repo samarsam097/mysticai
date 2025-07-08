@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>MysticAI 🔮</title>
+  <style>
+    body {
+      margin: 0; padding: 0;
+      font-family: Arial, sans-serif;
+      background: #1a1a2e; color: #f8f8f8;
+    }
+    .container {
+      max-width: 800px;
+      margin: auto;
+      padding: 20px;
+    }
+    .view { display: none; }
+    .view.active { display: block; }
+    .card, .module {
+      background: #2e2e44;
+      margin: 20px 0;
+      padding: 20px;
+      border-radius: 8px;
+    }
+    h1, h2, h3 { margin-top: 0; }
+    input, textarea, select, button {
+      width: 100%; margin: 10px 0; padding: 10px;
+      border: none; border-radius: 5px;
+    }
+    button {
+      background: #7d5fff; color: #fff; cursor: pointer;
+      font-weight: bold;
+    }
+    button:hover { background: #5a3fc0; }
+    .tabs button {
+      width: 30%; display: inline-block; margin-right: 3%;
+    }
+    .tabs button:last-child { margin-right: 0; }
+    .history-item {
+      border-top: 1px solid #444; padding: 10px 0;
+    }
+    .response {
+      background: #12122a; padding: 15px; border-radius: 5px;
+      white-space: pre-wrap;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🔮 MysticAI</h1>
+
+    <!-- LOGIN VIEW -->
+    <div id="loginView" class="view active">
+      <div class="card">
+        <h2>Login</h2>
+        <input id="loginUser" placeholder="Username">
+        <input id="loginDob" type="date">
+        <button onclick="login()">Login</button>
+        <p>No account? <a href="#" onclick="show('registerView')">Register here</a></p>
+      </div>
+    </div>
+
+    <!-- REGISTER VIEW -->
+    <div id="registerView" class="view">
+      <div class="card">
+        <h2>Register</h2>
+        <input id="regUser" placeholder="Username">
+        <input id="regDob" type="date">
+        <button onclick="register()">Register & Login</button>
+        <p>Have an account? <a href="#" onclick="show('loginView')">Login here</a></p>
+      </div>
+    </div>
+
+    <!-- DASHBOARD VIEW -->
+    <div id="dashboardView" class="view">
+      <div class="card">
+        <h2>Welcome, <span id="dashUser"></span></h2>
+        <button onclick="logout()">Logout</button>
+      </div>
+      <div class="card">
+        <h2>Explore MysticAI Modules</h2>
+        <div class="module">
+          <h3>🖐 Palmistry</h3>
+          <p>Upload or reuse your palm image and ask specific questions about your palm lines.</p>
+          <button onclick="navigate('palmView')">Go to Palmistry</button>
+        </div>
+        <div class="module">
+          <h3>🔢 Numerology</h3>
+          <p>Compute your Life Path & Moolank and ask number-based advice.</p>
+          <button onclick="navigate('numerologyView')">Go to Numerology</button>
+        </div>
+        <div class="module">
+          <h3>🃏 Tarot</h3>
+          <p>Draw tarot cards, ask questions, and get card-based insights.</p>
+          <button onclick="navigate('tarotView')">Go to Tarot</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- PALMISTRY VIEW -->
+    <div id="palmView" class="view">
+      <div class="card">
+        <button onclick="navigate('dashboardView')">← Back</button>
+        <h2>🖐 Palmistry</h2>
+        <p id="palmStatus"></p>
+        <input type="file" id="palmImage">
+        <button onclick="uploadPalm()">Upload / Change Palm Image</button>
+        <textarea id="palmQuestion" rows="3" placeholder="Ask about your palm..."></textarea>
+        <button onclick="askPalm()">Ask MysticAI</button>
+        <div id="palmResponse" class="response"></div>
+        <h3>History</h3>
+        <div id="palmHistory"></div>
+      </div>
+    </div>
+
+    <!-- NUMEROLOGY VIEW -->
+    <div id="numerologyView" class="view">
+      <div class="card">
+        <button onclick="navigate('dashboardView')">← Back</button>
+        <h2>🔢 Numerology</h2>
+        <p><strong>Life Path:</strong> <span id="lifePath"></span></p>
+        <p><strong>Moolank:</strong> <span id="moolank"></span></p>
+        <textarea id="numQuestion" rows="3" placeholder="Ask for number-based advice..."></textarea>
+        <button onclick="askNumerology()">Ask MysticAI</button>
+        <div id="numResponse" class="response"></div>
+        <h3>History</h3>
+        <div id="numHistory"></div>
+      </div>
+    </div>
+
+    <!-- TAROT VIEW -->
+    <div id="tarotView" class="view">
+      <div class="card">
+        <button onclick="navigate('dashboardView')">← Back</button>
+        <h2>🃏 Tarot</h2>
+        <p>Select one or more cards:</p>
+        <select id="tarotCards" multiple size="5">
+          <option>The Fool</option>
+          <option>The Magician</option>
+          <option>The High Priestess</option>
+          <option>The Empress</option>
+          <option>The Emperor</option>
+          <option>The Hierophant</option>
+          <option>The Lovers</option>
+          <option>The Chariot</option>
+          <option>Strength</option>
+          <option>The Hermit</option>
+          <option>Wheel of Fortune</option>
+          <option>Justice</option>
+          <option>The Hanged Man</option>
+          <option>Death</option>
+          <option>Temperance</option>
+          <option>The Devil</option>
+          <option>The Tower</option>
+          <option>The Star</option>
+          <option>The Moon</option>
+          <option>The Sun</option>
+          <option>Judgement</option>
+          <option>The World</option>
+        </select>
+        <textarea id="tarotQuestion" rows="3" placeholder="Ask about these cards..."></textarea>
+        <button onclick="askTarot()">Ask MysticAI</button>
+        <div id="tarotResponse" class="response"></div>
+        <h3>History</h3>
+        <div id="tarotHistory"></div>
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    const API = 'http://localhost:3000';
+    let session = {};
+
+    function show(viewId) {
+      document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+      document.getElementById(viewId).classList.add('active');
+    }
+
+    async function login() {
+      const user = document.getElementById('loginUser').value;
+      const dob = document.getElementById('loginDob').value;
+      const res = await fetch(`${API}/login`, {
+        method: 'POST',
+        headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({username:user, dob})
+      });
+      const data = await res.json();
+      if (data.message) {
+        session = { user, dob, palm: data.palm_path };
+        document.getElementById('dashUser').innerText = user;
+        show('dashboardView');
+      } else {
+        alert(data.error);
+      }
+    }
+
+    async function register() {
+      const user = document.getElementById('regUser').value;
+      const dob = document.getElementById('regDob').value;
+      const res = await fetch(`${API}/register`, {
+        method: 'POST',
+        headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({username:user, dob})
+      });
+      const data = await res.json();
+      if (data.message) {
+        session = { user, dob, palm: null };
+        document.getElementById('dashUser').innerText = user;
+        show('dashboardView');
+      } else {
+        alert(data.error);
+      }
+    }
+
+    function logout() {
+      session = {};
+      show('loginView');
+    }
+
+    function navigate(view) {
+      show(view);
+      if (view === 'palmView') initPalm();
+      if (view === 'numerologyView') initNumerology();
+      if (view === 'tarotView') initTarot();
+    }
+
+    function initPalm() {
+      document.getElementById('palmStatus').innerText = session.palm
+        ? 'Your palm image is already saved.'
+        : 'No palm image uploaded yet.';
+      loadHistory('palm', 'palmHistory');
+      document.getElementById('palmResponse').innerText = '';
+    }
+
+    function initNumerology() {
+      const digits = session.dob.replace(/\D/g,'').split('').map(Number);
+      let life = digits.reduce((a,b)=>a+b,0);
+      while (life>9) life = String(life).split('').map(Number).reduce((a,b)=>a+b,0);
+      let day = parseInt(session.dob.split('-')[2],10);
+      while(day>9) day = String(day).split('').map(Number).reduce((a,b)=>a+b,0);
+      document.getElementById('lifePath').innerText = life;
+      document.getElementById('moolank').innerText = day;
+      document.getElementById('numResponse').innerText = '';
+      loadHistory('numerology', 'numHistory');
+    }
+
+    function initTarot() {
+      loadHistory('tarot', 'tarotHistory');
+      document.getElementById('tarotResponse').innerText = '';
+    }
+
+    async function uploadPalm() {
+      const file = document.getElementById('palmImage').files[0];
+      if (!file) return alert('Select an image first');
+      const form = new FormData();
+      form.append('username', session.user);
+      form.append('dob', session.dob);
+      form.append('question','');
+      form.append('image', file);
+      await fetch(`${API}/ask-palm`, { method:'POST', body: form });
+      session.palm = 'saved';
+      initPalm();
+    }
+
+    async function askPalm() {
+      const q = document.getElementById('palmQuestion').value;
+      const body = new FormData();
+      body.append('username', session.user);
+      body.append('dob', session.dob);
+      body.append('question', q);
+      if (document.getElementById('palmImage').files[0])
+        body.append('image', document.getElementById('palmImage').files[0]);
+      const res = await fetch(`${API}/ask-palm`, { method:'POST', body });
+      const data = await res.json();
+      document.getElementById('palmResponse').innerText = data.answer || data.error;
+      loadHistory('palm','palmHistory');
+    }
+
+    async function askNumerology() {
+      const q = document.getElementById('numQuestion').value;
+      const res = await fetch(`${API}/ask-numerology`, {
+        method: 'POST',
+        headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({username:session.user, dob:session.dob, question:q})
+      });
+      const data = await res.json();
+      document.getElementById('numResponse').innerText = data.answer || data.error;
+      loadHistory('numerology','numHistory');
+    }
+
+    async function askTarot() {
+      const q = document.getElementById('tarotQuestion').value;
+      const opts = Array.from(document.getElementById('tarotCards').selectedOptions).map(o=>o.value);
+      const res = await fetch(`${API}/ask-tarot`, {
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({
+          username: session.user,
+          question: q,
+          tarotCards: opts.join(', ')
+        })
+      });
+      const data = await res.json();
+      document.getElementById('tarotResponse').innerText = data.answer || data.error;
+      loadHistory('tarot','tarotHistory');
+    }
+
+    async function loadHistory(type, containerId) {
+    const container = document.getElementById(containerId);
+    container.innerHTML = '<p>Loading history…</p>';
+    try {
+      const res = await fetch(`${API}/history/${session.user}`);
+      if (!res.ok) throw new Error(res.statusText);
+      const arr = await res.json();
+      const filtered = arr.filter(x => x.type === type);
+      if (filtered.length === 0) {
+        container.innerHTML = '<p>No history yet.</p>';
+      } else {
+        container.innerHTML = filtered.map(h => `
+          <div class="history-item">
+            <strong>Q:</strong> ${h.question}<br>
+            <strong>A:</strong> ${h.answer}<br>
+            <small>${new Date(h.timestamp).toLocaleString()}</small>
+          </div>
+        `).join('');
+      }
+    } catch (err) {
+      console.error('History load error', err);
+      container.innerHTML = '<p>Error loading history.</p>';
+    }
+  }
+
+    // On load, stay at login
+    show('loginView');
+  </script>
+</body>
+</html>
